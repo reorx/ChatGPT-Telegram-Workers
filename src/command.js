@@ -201,6 +201,7 @@ async function commandSystem(message) {
   if (ENV.DEBUG_MODE) {
     msg+=`OpenAI参数: ${JSON.stringify(USER_CONFIG.OPENAI_API_EXTRA_PARAMS)}\n`;
     msg+=`初始化文本: ${USER_CONFIG.SYSTEM_INIT_MESSAGE}\n`;
+    msg+=`禁用初始化文本: ${ENV.DISABLE_SYSTEM_INIT_MESSAGE}\n`;
     // if (ENV.DEV_MODE) {
     //   const shareCtx = {...SHARE_CONTEXT};
     //   shareCtx.currentBotToken = '***';

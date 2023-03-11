@@ -30,11 +30,13 @@ var ENV = {
   // 开发模式
   DEV_MODE: false,
   // 当前版本
-  BUILD_TIMESTAMP: 1678363377,
+  BUILD_TIMESTAMP: 1678549481,
   // 当前版本 commit id
-  BUILD_VERSION: "7b9b91f",
+  BUILD_VERSION: "5a3abba",
   // 全局默认初始化消息
-  SYSTEM_INIT_MESSAGE: "\u4F60\u662F\u4E00\u4E2A\u5F97\u529B\u7684\u52A9\u624B"
+  SYSTEM_INIT_MESSAGE: "\u4F60\u662F\u4E00\u4E2A\u5F97\u529B\u7684\u52A9\u624B",
+  // 关闭全局初始化消息
+  DISABLE_SYSTEM_INIT_MESSAGE: false
 };
 var CONST = {
   PASSWORD_KEY: "chat_history_password",
@@ -490,6 +492,8 @@ async function commandSystem(message) {
 `;
     msg += `\u521D\u59CB\u5316\u6587\u672C: ${USER_CONFIG.SYSTEM_INIT_MESSAGE}
 `;
+    msg += `\u7981\u7528\u521D\u59CB\u5316\u6587\u672C: ${ENV.DISABLE_SYSTEM_INIT_MESSAGE}
+`;
   }
   return sendMessageToTelegram(msg);
 }
@@ -871,7 +875,7 @@ async function loadHistory(key) {
     if (history.length > ENV.MAX_HISTORY_LENGTH) {
       history = history.splice(history.length - ENV.MAX_HISTORY_LENGTH);
     }
-    let tokenLength = Array.from(initMessage.content).length;
+    let tokenLength = ENV.DISABLE_SYSTEM_INIT_MESSAGE ? 0 : Array.from(initMessage.content).length;
     for (let i = history.length - 1; i >= 0; i--) {
       const historyItem = history[i];
       let length = 0;
@@ -887,13 +891,17 @@ async function loadHistory(key) {
       }
     }
   }
-  switch (history.length > 0 ? history[0].role : "") {
-    case "assistant":
-    case "system":
-      history[0] = initMessage;
-      break;
-    default:
-      history.unshift(initMessage);
+  if (ENV.DISABLE_SYSTEM_INIT_MESSAGE) {
+    switch (history.length > 0 ? history[0].role : "") {
+      case "assistant":
+      case "system":
+        history[0] = initMessage;
+        break;
+      default:
+        history.unshift(initMessage);
+    }
+  } else if (history.length > 0 && history[0].role === "system") {
+    history.shift();
   }
   return { real: history };
 }

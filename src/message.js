@@ -295,7 +295,7 @@ async function loadHistory(key) {
       history = history.splice(history.length - ENV.MAX_HISTORY_LENGTH);
     }
     // 处理token长度问题
-    let tokenLength = Array.from(initMessage.content).length;
+    let tokenLength = ENV.DISABLE_SYSTEM_INIT_MESSAGE ? 0 : Array.from(initMessage.content).length;
     for (let i = history.length - 1; i >= 0; i--) {
       const historyItem = history[i];
       let length = 0;
@@ -312,13 +312,18 @@ async function loadHistory(key) {
       }
     }
   }
-  switch (history.length > 0 ? history[0].role : '') {
-    case 'assistant': // 第一条为机器人，替换成init
-    case 'system': // 第一条为system，用新的init替换
-      history[0] = initMessage;
-      break;
-    default:// 默认给第一条插入init
-      history.unshift(initMessage);
+  if (ENV.DISABLE_SYSTEM_INIT_MESSAGE) {
+    switch (history.length > 0 ? history[0].role : '') {
+      case 'assistant': // 第一条为机器人，替换成init
+      case 'system': // 第一条为system，用新的init替换
+        history[0] = initMessage;
+        break;
+      default:// 默认给第一条插入init
+        history.unshift(initMessage);
+    }
+  } else if (history.length > 0 && history[0].role === 'system') {
+    // 如果禁用 system init message 且第一条消息为 system，去掉这条消息
+    history.shift()
   }
   return {real: history};
 }
